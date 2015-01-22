@@ -1,11 +1,37 @@
-var app = angular.module("VKAdmin",[]);
+var app = angular.module("VKAdmin",["angularFileUpload", "ngCookies"]);
+
+
 function StatisticsController($scope)
 {
 
 }
 
-function PostingController($scope)
+function PostingController($scope, $http ,$cookies, FileUploader)
 {
+	// $httpProvider.defaults.useXDomain = true;
+	// delete $httpProvider.defaults.headers.common['X-Requested-With'];
+	var uploader = $scope.uploader = new FileUploader({url:"upload_file.php"});
+
+	uploader.filters.push({
+		name: 'customFilter',
+		fn: function(item /*{File|FileLikeObject}*/, options) {
+			return this.queue.length < 10;
+		}
+	});
+
+	uploader.onSuccessItem = function(fileItem, response, status, headers) {
+		console.log(response);
+	};
+
+	uploader.onErrorItem = function(item, response, status, headers) {
+		console.log(response);
+	};
+
+	uploader.onBeforeUploadItem = function(item) {
+
+		console.info('onBeforeUploadItem', item);
+	};
+
 	$scope.init = VK.api("groups.get", {
 		extended:1,
 		filter:"admin"
@@ -16,7 +42,7 @@ function PostingController($scope)
 		$scope.$apply();
 	});
 
-	$scope.uploadPhoto = function()
+	$scope.resolveUploadURL = function()
 	{
 		VK.api("photos.getWallUploadServer",
 		{
@@ -24,9 +50,9 @@ function PostingController($scope)
 		},
 		function(response)
 		{
-			
-		}
-		);
+			// $scope.uploader.url = response.response.upload_url;	
+			$cookies.upload_url = response.response.upload_url;	
+		});
 	}
 	$scope.post = function()
 	{
@@ -63,6 +89,7 @@ function PostingController($scope)
 function WallController($scope)
 {
 	$scope.postsOffset = 0;
+	$scope.commentsOffset = 0;
 	$scope.editing = [0];
 	$scope.backup = [];
 	$scope.deleted = [0];
@@ -85,7 +112,34 @@ function WallController($scope)
 				extended:1
 			}, function(response)
 			{
-				$scope.posts = response.response.wall.slice(1);
+				if(typeof $scope.posts === "undefined"){
+					$scope.posts = response.response.wall.slice(1);
+				}
+				else{
+					$scope.posts.concat(response.response.wall.slice(1));	
+				}
+				
+				$scope.postsOffset += 100;
+				$scope.posts.forEach(function(obj) {
+					obj.owner = response.response.groups.filter(function(obj1){
+						if(Math.abs(obj.from_id) === obj1.gid){
+							obj.isFromGroup = true;
+							return true;
+						}
+						return false;
+					})[0];
+				});
+				$scope.posts.forEach(function(obj) {
+					if(typeof obj.owner === "undefined"){
+						obj.owner = response.response.profiles.filter(function(obj1){
+							if(!obj.isFromGroup && obj.from_id === obj1.uid)
+							{
+								return true;
+							}
+							return false;
+						})[0];
+					}
+				});
 				$scope.$apply();
 			});
 		}
@@ -149,109 +203,139 @@ function WallController($scope)
 	$scope.getComments = function(postId, $index)
 	{
 		$scope.commentsShow[$index] = true;
-		VK.api("wall.getComments",
+		if((typeof $scope.comments[$index] === "undefined") ? 1 : ($scope.comments[$index].length ==0))
 		{
-			v: 5.27,
-			owner_id:-$("#groups-select :selected").val(),
-			post_id: postId,
-			offset:0,
-			count: 100,
-			extended: 1
-		},
-		function(response)
-		{
-			console.log(response);
-			$scope.comments[$index] = response.response.items;
-			// $scope.comments[$index].forEach(function(obj)
-			// 	{
-			// 		obj.user = response.response.profiles.filter(function(obj1)
-			// 		{
-			// 			return obj1.id === obj.from_id;
-			// 		})[0];
-			// 	});
-			// $scope.profiles = response.response.profiles;
-			// $scope.groups = response.response.groups;
-			$scope.$apply();
-
-		})
-	}
-
-	$scope.addComment = function(postId, commentFromGroup, commentText, replyTo)
-	{
-		VK.api("wall.addComment",
-		{
-			owner_id: -$("#groups-select :selected").val(),
-			post_id: postId,
-			from_group: commentFromGroup,
-			text: commentText,
-			reply_to_comment: replyTo
-
-		},
-		function(response)
-		{
-			console.log(response);
-		}
-		);
-	}
-	$scope.deleteComment = function(commentId, parentIndex, index)
-	{
-		$scope.comments[parentIndex][index].deleted = true;
-		VK.api("wall.deleteComment",
-		{
-			owner_id: -$("#groups-select :selected").val(),
-			comment_id: commentId
-		},
-		function(response)
-		{
-
-		}
-		);
-		
-	}
-	$scope.restoreComment = function(commentId, parentIndex ,index)
-	{
-		$scope.comments[parentIndex][index].deleted = false;
-		VK.api("wall.restoreComment",
-		{
-			owner_id: -$("#groups-select :selected").val(),
-			comment_id: commentId
-		},
-		function(response)
-		{
-
-		}
-		);
-	}
-	$scope.beginEditComment = function(parentIndex, index)
-	{
-		$scope.comments[parentIndex][index].editing = true;
-		$scope.comments[parentIndex][index].backup = $scope.comments[parentIndex][index].text;
-	}
-	$scope.editComment = function(commentId, commentText, parentIndex, index)
-	{
-		$scope.comments[parentIndex][index].editing = false;
-		VK.api("wall.editComment",
+			VK.api("wall.getComments",
 			{
-				owner_id: -$("#groups-select :selected").val(),
-				comment_id: commentId,
-				message: commentText
+				v: 5.27,
+				owner_id:-$("#groups-select :selected").val(),
+				post_id: postId,
+				offset: $scope.commentsOffset[$index],
+				count: 100,
+				extended: 1
 			},
 			function(response)
 			{
+				$scope.commentsOffset += 100;
 				console.log(response);
-			});
-	}
-	$scope.cancelEdit = function(parentIndex, index)
-	{	
-		$scope.comments[parentIndex][index].editing = false;
-		$scope.comments[parentIndex][index].text = $scope.comments[parentIndex][index].backup;
-		$scope.comments[parentIndex][index].backup = null; 
-	}
+				if(typeof $scope.comments[$index] === "undefined")
+				{
+					$scope.comments[$index] = response.response.items;
+				}
+				else 
+				{
+					$scope.comments[$index].concat(response.response.items);	
+				}			
+				$scope.comments[$index].forEach(function(obj) 
+				{
+					obj.owner = response.response.groups.filter(function(obj1){
+						if(Math.abs(obj.from_id) === obj1.id){
+							obj.isFromGroup = true;
+							return true;
+						}
+						return false;
+					})[0];
+				});
+				$scope.comments[$index].forEach(function(obj) {
+					if(typeof obj.owner === "undefined")
+					{
+						obj.owner = response.response.profiles.filter(function(obj1)
+						{
+							if(!obj.isFromGroup && obj.from_id === obj1.id)
+							{
+								return true;
+							}
+							return false;
+						})[0];
+					}
+				});
+				$scope.$apply();});
+}
+$scope.hideComments = function(index)
+{
+	$scope.commentsShow[index] = false;
+}
 
-	$scope.beginReply = function(commentId)
+}
+
+
+
+$scope.addComment = function(postId, commentFromGroup, commentText, replyTo)
+{
+	VK.api("wall.addComment",
 	{
-		$("#commentText").focus();
-		$scope.replyTo = commentId;
+		owner_id: -$("#groups-select :selected").val(),
+		post_id: postId,
+		from_group: commentFromGroup,
+		text: commentText,
+		reply_to_comment: replyTo
+
+	},
+	function(response)
+	{
+		console.log(response);
 	}
+	);
+}
+$scope.deleteComment = function(commentId, parentIndex, index)
+{
+	$scope.comments[parentIndex][index].deleted = true;
+	VK.api("wall.deleteComment",
+	{
+		owner_id: -$("#groups-select :selected").val(),
+		comment_id: commentId
+	},
+	function(response)
+	{
+
+	}
+	);
+
+}
+$scope.restoreComment = function(commentId, parentIndex ,index)
+{
+	$scope.comments[parentIndex][index].deleted = false;
+	VK.api("wall.restoreComment",
+	{
+		owner_id: -$("#groups-select :selected").val(),
+		comment_id: commentId
+	},
+	function(response)
+	{
+
+	}
+	);
+}
+$scope.beginEditComment = function(parentIndex, index)
+{
+	$scope.comments[parentIndex][index].editing = true;
+	$scope.comments[parentIndex][index].backup = $scope.comments[parentIndex][index].text;
+}
+$scope.editComment = function(commentId, commentText, parentIndex, index)
+{
+	$scope.comments[parentIndex][index].editing = false;
+	VK.api("wall.editComment",
+	{
+		owner_id: -$("#groups-select :selected").val(),
+		comment_id: commentId,
+		message: commentText
+	},
+	function(response)
+	{
+		console.log(response);
+	});
+}
+$scope.cancelEdit = function(parentIndex, index)
+{	
+	$scope.comments[parentIndex][index].editing = false;
+	$scope.comments[parentIndex][index].text = $scope.comments[parentIndex][index].backup;
+	$scope.comments[parentIndex][index].backup = null; 
+}
+
+$scope.beginReply = function(commentId, parentIndex)
+{
+	$("#commentText"+parentIndex).focus();
+	$scope.replyTo = commentId;
+}
 
 }
