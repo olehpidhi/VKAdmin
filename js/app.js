@@ -8,8 +8,10 @@ function StatisticsController($scope)
 
 function PostingController($scope, $http ,$cookies, FileUploader)
 {
-	// $httpProvider.defaults.useXDomain = true;
-	// delete $httpProvider.defaults.headers.common['X-Requested-With'];
+	$scope.uploadStarted = false;
+	$scope.uploadFinished = false;
+	$scope.attachment;
+	$scope.videos = [];
 	var uploader = $scope.uploader = new FileUploader({url:"upload_file.php"});
 
 	uploader.filters.push({
@@ -20,7 +22,19 @@ function PostingController($scope, $http ,$cookies, FileUploader)
 	});
 
 	uploader.onSuccessItem = function(fileItem, response, status, headers) {
-		console.log(response);
+		VK.api("photos.saveWallPhoto",
+		{
+			group_id: $("#groups-select :selected").val(),
+			photo: response.photo,
+			hash: response.hash,
+			server: response.server
+		}, function(response)
+		{
+			console.log(response);
+			$scope.attachment = response.response[0];
+			$scope.uploadFinished = true;
+			$scope.uploadStarted = false;
+		});
 	};
 
 	uploader.onErrorItem = function(item, response, status, headers) {
@@ -28,7 +42,7 @@ function PostingController($scope, $http ,$cookies, FileUploader)
 	};
 
 	uploader.onBeforeUploadItem = function(item) {
-
+		$scope.uploadStarted = true;
 		console.info('onBeforeUploadItem', item);
 	};
 
@@ -41,6 +55,25 @@ function PostingController($scope, $http ,$cookies, FileUploader)
 		$scope.groups = response.response.slice(1);
 		$scope.$apply();
 	});
+
+	$scope.uploadVideo = function()
+	{
+		if($scope.youtubeUrl) {
+			VK.api("video.save",
+			{
+				group_id: $("#groups-select :selected").val(),
+				link: $scope.youtubeUrl,
+				name: $scope.youtubeName,
+				description: $scope.youtubeDescription
+			}, 
+			function(response) {
+
+				$scope.videos.push("video" + response.response.owner_id + "_" + response.response.vid);
+			});
+		} else {
+
+		}
+	}
 
 	$scope.resolveUploadURL = function()
 	{
@@ -56,17 +89,22 @@ function PostingController($scope, $http ,$cookies, FileUploader)
 	}
 	$scope.post = function()
 	{
-		function sendPost(postText, groupId, fromGroup)
+		function sendPost(postText, groupId, fromGroup, attachment)
 		{
-			VK.api("wall.post",
-			{
-				owner_id: groupId,
-				from_group: fromGroup,
-				message: postText
-			}, function(response)			
-			{
-				console.log(response);
-			});
+			if($scope.uploadFinished) {
+				VK.api("wall.post",
+				{
+					owner_id: groupId,
+					from_group: fromGroup,
+					message: postText,
+					attachments: attachment
+				}, function(response)			
+				{
+					console.log(response);
+				});
+			} else {
+				$scope.message = "Please wait, file is uploading";
+			}
 		}
 
 		var group = $("#groups-select :selected").val();
@@ -76,12 +114,12 @@ function PostingController($scope, $http ,$cookies, FileUploader)
 			{
 				console.log($scope.groups[i]);
 				console.log($scope.groups[i].gid);
-				sendPost($scope.postText, -$scope.groups[i].gid, $scope.fromGroup ? 1 : 0);
+				sendPost($scope.postText, -$scope.groups[i].gid, $scope.fromGroup ? 1 : 0, $scope.attachment.id);
 			}
 		}
 		else
 		{
-			sendPost($scope.postText, -group, $scope.fromGroup ? 1 : 0);
+			sendPost($scope.postText, -group, $scope.fromGroup ? 1 : 0, $scope.attachment.id);
 		}
 	}
 }
@@ -182,8 +220,7 @@ function WallController($scope)
 		},
 		function(response)
 		{
-		}
-		)
+		});
 	}
 
 	$scope.restorePost = function(postId, $index)

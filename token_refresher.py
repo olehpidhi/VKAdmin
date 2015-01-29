@@ -9,7 +9,7 @@ expires_in = 0
 while True:
     time.sleep(float(expires_in))
     try:
-        token, user_id, expires_in = vk_auth.auth(user_data[0], user_data[1], user_data[2], "photos,wall,offline")
+        token, user_id, expires_in = vk_auth.auth(user_data[0], user_data[1], user_data[2], "photos,wall,offline,video")
         with open("token", "w") as token_file:
             print(token, file = token_file)
     except Exception:
