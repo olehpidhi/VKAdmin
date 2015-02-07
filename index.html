@@ -16,17 +16,18 @@
 
 	<!-- Posting section begin -->
 	<div ng-controller = "PostingController" ng-init = "init()">
+
+		<p>{{error.message}}</p>
+
+		<!-- Group Selection begin -->
 		<label>Select group:</label>
 		<br>
-
-		<select id = "groups-select">
-			<option value = "All">All</option>
-			<option ng-repeat = "group in groups" value = {{group.gid}}>{{group.name}}</option>
+		<select ng-model="currentGroup.group" ng-options="group as group.name for group in groups">
 		</select>
 		<br>
-
 		<textarea ng-model = "postText" required></textarea>
 		<br>
+		<!-- Group Selection end -->
 
 		<!-- File upload -->
 		<input type="file" id="uploader" nv-file-select uploader="uploader" ng-click="resolveUploadURL()"/><br/>
@@ -44,20 +45,13 @@
 		Description:<input type="text" ng-model="youtubeDescription"/>
 		<button ng-click="uploadVideo()">Upload video from youtube</button> 
 
-		<!-- Video upload end -->
-
-		<!-- Document upload begin -->
-
-
-		<!-- Document upload end -->
-
-		<!-- Uploading by dragging into drop area -->
-		<ul oi-file="options">
-			<li ng-repeat="item in items">
-				<img ng-src="{{item.thumb}}"> 
+		<ul>
+			<li ng-repeat="video in videos">
+				{{video.name}} <a href="#" ng-click="deleteVideo($index)">x</a>
 			</li>
 		</ul>
 
+		<!-- Video upload end -->
 		<br>
 		<label>
 			<input type="checkbox" ng-model = "fromGroup"/>From group?
@@ -68,32 +62,41 @@
 
 	<!-- Wall section begin -->
 	<div ng-controller = "WallController">
-		<!-- Error message -->
-		<p>{{message}}</p>
-		<!-- Error message -->
+
 		<a href="#" ng-click="getPosts()">Show posts</a> 
 		<ul>
 			<li ng-repeat = "post in posts">
-				<div ng-show="!deleted[$index]"> 
+				<!-- Restore deleted post begin -->
+				<div ng-show="post.deleted">
+					The post have been deleted. <a href="#" ng-click="restorePost($index)">Restore?</a>
+				</div>
+				<!-- Restore deleted post end -->
+				<div ng-show="!post.deleted"> 
+
+					<!-- Post data begin -->
 					<img ng-src="{{post.owner.photo}}"/>
-					<p>{{post.owner.first_name+post.owner.name}}</p>
-					<p>{{post.owner.last_name}}</p>
+					<p>{{post.owner.first_name+post.owner.name}} {{post.owner.last_name}}</p>
 					<div ng-bind="post.text">
 					</div>
-					<div ng-show = "editing[$index]">
+					<!-- Post data end -->
+					<!-- Post editing controls begin -->
+					<div ng-show = "post.editing">
 						<textarea ng-model="post.text"></textarea>
-						<a href="#" ng-click="editPost(post.id, post.text, $index)">Confirm</a>
+						<a href="#" ng-click="editPost(post.text, $index)">Confirm</a>
 						<a href="#" ng-click="cancelEdit($index)">Cancel</a>
 					</div>
-
-					<a href="#" ng-click="beginEdit($index)" ng-show = "post.can_edit&&!editing[$index]">Edit</a>
-					<a href="#" ng-click="deletePost(post.id, $index)" ng-show = "post.can_delete">Delete Post</a>
-					<a href="#" ng-click="getComments(post.id, $index)">Show Comments</a>
+					<!-- Post editing controls end -->
+					<!-- Post controls begin -->
+					<a href="#" ng-click="beginEdit($index)" ng-show = "post.can_edit&&!post.editing">Edit</a>
+					<a href="#" ng-click="deletePost($index)" ng-show = "post.can_delete">Delete Post</a>
+					<a href="#" ng-click="getComments($index)">Show Comments</a>
 					<a href="#" ng-click="hideComments($index)">Hide Comments</a>
-					<!-- Comments section -->
-					<div ng-show = "commentsShow[$index]">
+					<!-- Post controls end -->
+
+					<!-- Comments section begin-->
+					<div ng-show = "post.commentsShow">
 						<ul>
-							<li ng-repeat="comment in comments[$index]"  >
+							<li ng-repeat="comment in post.comments">
 								<div ng-show="!(comment.deleted||comment.editing)">
 									<!-- Comment data section begin -->
 									<img ng-src="{{comment.owner.photo_50}}"/>
@@ -111,7 +114,7 @@
 
 									<!-- Comment control secton begin -->
 									<a href="#" ng-click="beginEditComment($parent.$index,$index)" ng-show = "comment.can_edit">Edit</a>
-									<a href="#" ng-click="deleteComment(comment.id, $parent.$index ,$index); getComments(post.id, $index)">Delete Comment</a>
+									<a href="#" ng-click="deleteComment(comment.id, $parent.$index ,$index); getComments($parent.$index)">Delete Comment</a>
 									<a href="#" ng-click="beginReply(comment.id, $parent.$index)" ng-show = "true">Reply</a>
 									<!-- Comment control secton begin -->
 								</div>
@@ -124,7 +127,7 @@
 						</ul>
 						<!-- Add comment section begin -->
 						<textarea ng-model="commentText" id="commentText{{$index}}"></textarea>
-						<a href="#" ng-click="addComment(post.id, commentFromGroup ? 1 : 0 ,commentText, replyTo)" >Add Comment</a>
+						<a href="#" ng-click="addComment($index, commentFromGroup ? 1 : 0 , commentText, replyTo)" >Add Comment</a>
 						<label>
 							<input type="checkbox" ng-model = "commentFromGroup"/>From group?
 						</label>
@@ -133,9 +136,7 @@
 					</div>
 					<!-- Comments section end -->
 				</div>
-				<div ng-show="deleted[$index]">
-					The post have been deleted. <a href="#" ng-click="restorePost(post.id, $index)">Restore?</a>
-				</div>
+				
 			</li>
 		</ul>
 	</div>
