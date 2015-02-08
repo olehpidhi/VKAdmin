@@ -1,4 +1,5 @@
 <?php 
-$data = file_get_contents('token', true);
-echo $data;
+$myfile = fopen("token", "r") or die("Unable to open file!");
+echo fread($myfile,filesize("token"));
+fclose($myfile);
 ?>
