@@ -16,7 +16,7 @@
     <link href="css/font-awesome.min.css" rel="stylesheet">
     <!-- Custom CSS -->
     <link href="css/blog-post.css" rel="stylesheet">
-
+    <link href="css/demo.css" rel="stylesheet" type="text/css">
 
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
@@ -39,23 +39,8 @@
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
-                    <a class="navbar-brand" href="#">Start Bootstrap</a>
+                    <a class="navbar-brand" href="#">Social Network Admin</a>
                 </div>
-                <!-- Collect the nav links, forms, and other content for toggling -->
-                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                    <ul class="nav navbar-nav">
-                        <li>
-                            <a href="#">About</a>
-                        </li>
-                        <li>
-                            <a href="#">Services</a>
-                        </li>
-                        <li>
-                            <a href="#">Contact</a>
-                        </li>
-                    </ul>
-                </div>
-                <!-- /.navbar-collapse -->
             </div>
             <!-- /.container -->
         </nav>
@@ -65,209 +50,258 @@
 
             <div class="row">
 
+                <div class="col-md-4">
+                    <!-- Group Selection Well -->
+                    <div class="well" ng-controller="PostingController">
+                        <h4>Select group</h4>
+                        <select class="form-control" ng-model="currentGroup.group" ng-options="group as group.name for group in groups">
+                        </select>
+                    </div>
+                </div>
+
                 <div class="col-lg-8">
-
-                    <div ng-controller = "StatisticsController"> </div>
-
-                    <!-- Posting section begin -->
-                    <div ng-controller = "PostingController" class = "well" ng-init = "init()">
-
-                        <p>{{error.message}}</p>
-                        <h4>Add post</h4>
-                        <textarea ng-model = "postText" class="form-control" required></textarea>
-                        <br>
-
+                    <div ng-controller = "StatisticsController">
                         <div class="panel-group" id="accordion">
                             <div class="panel panel-default" id="panel1">
-                                <!-- Photo upload -->
 
                                 <div class="panel-heading">
                                     <h4 class="panel-title">
-                                        <a data-toggle="collapse" data-target="#photoCollapse" href="#photoCollapse" class = "collapsed">Add photo</a>
+                                        <a data-toggle="collapse" data-target="#statsCollapse" href="#statsCollapse" class = "collapsed">Statistics</a>
                                     </h4>
                                 </div>
-                                <div id="photoCollapse" class="panel-collapse collapse">
+                                <div id="statsCollapse" class="panel-collapse collapse">
                                     <div class="panel-body">
-                                        <input type="file" id="uploader" nv-file-select uploader="uploader" ng-click="resolveUploadURL()"/><br>
-                                        <ul>
-                                            <li ng-repeat="item in uploader.queue">
-                                                Name: <span ng-bind="item.file.name"></span><br>
-                                                <button cass="btn btn-default"  ng-click="item.upload()">upload</button>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                                <!-- Photo upload end -->
 
-                                <!-- Video upload begin -->
-
-
-                                <div class="panel-heading">
-                                    <h4 class="panel-title">
-                                        <a data-toggle="collapse" data-target="#videoCollapse" href="#videoCollapse" class = "collapsed">Add video</a>
-                                    </h4>
-                                </div>
-
-                                <div id="videoCollapse" class="panel-collapse collapse">
-                                    <div class="panel-body">
-                                        <label for="url">URL:</label>
-                                        <input id = "url" class = "form-control" type="text" ng-model="youtubeUrl"/>
+                                        <label for"from-date">From: </label>
+                                        <input type="date" id="from-date" class="form-control" ng-model="fromDate">
                                         <br>
-                                        <button class = "btn btn-default" ng-click="uploadVideo()">Upload video</button> 
-
-                                        <ul>
-                                            <li ng-repeat="video in videos">
-                                                {{video.origin_url}} <a href="#" ng-click="deleteVideo($index)"><span class="glyphicon glyphicon-trash"></span></a>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Video upload end -->
-                        <label >
-                            <input type="checkbox" ng-model = "fromGroup"/>
-                            From group?
-                        </label>
-                        <br>
-
-                        <a class="btn btn-default" href="#" ng-click = "post()">Post</a>
-                    </div>
-                    <!-- Posting section end -->
-
-                    <!-- Wall section begin -->
-                    <div ng-controller = "WallController">
-
-                        <div class="text-center"> 
-                            <a href="#" class = "btn btn-default" ng-click="getPosts()">Show posts</a>
-                        </div>
-                        <br>
-                        <ul class="list-group">
-                            <li class="list-group-item" ng-repeat = "post in posts">
-                                <!-- Restore deleted post begin -->
-                                <div ng-show="post.deleted">
-                                    The post have been deleted. <a href="#" ng-click="restorePost($index)">Restore?</a>
-                                </div>
-                                <!-- Restore deleted post end -->
-
-                                <div  class="media" ng-show="!post.deleted"> 
-                                    <!-- Post data begin -->
-                                    <a class="pull-left" href="#">
-                                        <img class="media-object" ng-src="{{post.owner.photo}}">
-                                    </a>
-
-                                    <a class="pull-right" href="#" ng-click="beginEdit($index)" ng-show = "post.can_edit&&!post.editing"><span class="glyphicon glyphicon-pencil"></span></a>
-                                    <a class="pull-right" href="#" ng-click="deletePost($index)" ng-show = "post.can_delete"><span class="glyphicon glyphicon-trash"></span></a>
-
-                                    <div class="media-body">
-                                        <h4 class="media-heading">{{post.owner.first_name+post.owner.name}} {{post.owner.last_name}}
-                                            <small>{{post.date*1000 | date:"dd MMMM, yyyy 'at' HH:mm"}}</small>
-                                        </h4>
-                                        <div ng-bind="post.text">
+                                        <label for="to-date">To: </label>
+                                        <input id="to-date" type="date" class="form-control" ng-model="toDate">
+                                        <br>
+                                        <a class = "btn btn-default" href="#" ng-click="getStats(fromDate, toDate)">Get</a>
+                                        <div ng-show="statsFetched">
+                                                <div>
+                                                    <h4>Unique visitors and pageview</h4>
+                                                    <canvas id="uniqueVisitorsAndViewsChart" width="400" height="400"></canvas>
+                                                    <div id="uniqueVisitorsAndViewsLegend"></div>
+                                                </div>
+                                                <div>
+                                                    <h4>Sex / Age</h4>
+                                                    <canvas id="sexAgeChart" width="400" height="400"></canvas>
+                                                    <div id="sexAgeLegend"></div>
+                                                </div>                                    
+                                                <div>
+                                                    <h4>Geo. Visits from Countries</h4>
+                                                    <canvas id="geoCountriesChart" width="400" height="400"></canvas>
+                                                    <div id="geoCountriesLegend"></div>
+                                                </div>
+                                                <div>
+                                                    <h4>Geo. Visits from Cities</h4>
+                                                    <canvas id="geoCitiesChart" width="400" height="400"></canvas>
+                                                    <div id="geoCitiesLegend"></div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                    <!-- Post data end -->
 
-                                    <!-- Post editing controls begin -->
-                                    <br>
-                                    <div class="" ng-show = "post.editing">
-                                        <textarea class="form-control" ng-model="post.text"></textarea>
-                                        <a class="btn btn-default"  href="#" ng-click="editPost(post.text, $index)">Confirm</a>
-                                        <a class="btn btn-default" href="#" ng-click="cancelEdit($index)">Cancel</a>
-                                    </div>
-                                    <!-- Post editing controls end -->
 
-                                    <!-- Post controls begin -->                                    
-                                    <a href="#" ng-click="getComments($index)">Show Comments</a>
-                                    <a href="#" ng-click="hideComments($index)">Hide Comments</a>
-                                    <!-- Post controls end -->
-                                    <br>
-                                    <!-- Comments section begin-->
-                                    <div ng-show = "post.commentsShow">
-                                        <ul class="list-group">
-                                            <li class="list-group-item" ng-repeat="comment in post.comments">
-                                                <!-- Comment data section begin -->
-                                                <div class="media"  ng-show="!(comment.deleted||comment.editing)">
-
-                                                    <a class="pull-left">
-                                                        <img class="media-object" ng-src="{{comment.owner.photo_50}}">
-                                                    </a>
-                                                    <a class="pull-right" href="#" ng-click="beginEditComment($parent.$index,$index)" ng-show = "comment.can_edit"><span class="glyphicon glyphicon-pencil"></span></a>
-                                                    <a class="pull-right" href="#" ng-click="deleteComment(comment.id, $parent.$index ,$index); getComments($parent.$index)"><span class="glyphicon glyphicon-trash"></span></a>
-                                                    <a class="pull-right" href="#" ng-click="beginReply(comment.id, $parent.$index)" ng-show = "true"><span class="glyphicon glyphicon-share-alt"></span></a>
-
-                                                    <div class="media-body">                                                        
-                                                      <h4 class="media-heading">{{comment.owner.name}} {{comment.owner.first_name}} {{comment.owner.last_name}} <small>{{comment.date*1000 | date:"dd MMMM, yyyy 'at' HH:mm"}}</small> </h4>
-                                                      <div ng-bind="comment.text"> </div>
-                                                  </div>
-                                                  <!-- Comment data section end -->
-
-                                                  <!-- Comment edit section begin -->
-                                                  <div  ng-show = "comment.editing">
-                                                    <textarea ng-model="comment.text"></textarea>
-                                                    <a href="#" ng-click="editComment(comment.id, comment.text, $parent.$index, $index)" >Confirm</a>
-                                                    <a href="#" ng-click="cancelEditComment($parent.$index,$index)">Cancel</a>
-                                                </div>
-                                                <!-- Comment edit section end -->
-
-                                                <!-- Comment control secton begin -->
-
-                                                <!-- Comment control secton begin -->
-                                            </div>
-                                            <!-- Comment deleted message begin -->
-                                            <div ng-show="comment.deleted">
-                                                Comment has been deleted. <a href="#" ng-click="restoreComment(comment.id, $parent.$index ,$index)">Restore?</a>
-                                            </div>
-                                            <!-- Comment deleted message end -->
-                                        </li>
-                                    </ul>
-                                    <div class="text-center">
-                                        <a class="btn btn-default" href="#" ng-click="getComments(post.id, $index)">Show more comments</a>
-                                    </div>
-                                    <br>
-
-                                    <!-- Add comment section begin -->
-                                    <div>
-                                        <textarea class="form-control" ng-model="commentText" id="commentText{{$index}}"></textarea>
-                                        <br>
-                                        <a class="btn btn-default" href="#" ng-click="addComment($index, commentFromGroup ? 1 : 0 , commentText, replyTo)" >Post</a>
-                                        <label>
-                                            <input type="checkbox" ng-model = "commentFromGroup"/>From group?
-                                        </label>
-                                    </div>
-                                    <!-- Add comment section end -->
                                 </div>
-                                <!-- Comments section end -->
                             </div>
+                        </div>
+                        <!-- Posting section begin -->
+                        <div ng-controller = "PostingController" class = "well" ng-init = "init()">
 
-                        </li>
-                    </ul>
+                            <p>{{error.message}}</p>
+                            <h4>Add post</h4>
+                            <textarea ng-model = "postText" class="form-control" required></textarea>
+                            <br>
+
+                            <div class="panel-group" id="accordion">
+                                <div class="panel panel-default" id="panel1">
+                                    <!-- Photo upload -->
+
+                                    <div class="panel-heading">
+                                        <h4 class="panel-title">
+                                            <a data-toggle="collapse" data-target="#photoCollapse" href="#photoCollapse" class = "collapsed">Add photo</a>
+                                        </h4>
+                                    </div>
+                                    <div id="photoCollapse" class="panel-collapse collapse">
+                                        <div class="panel-body">
+                                            <input type="file" id="uploader" nv-file-select uploader="uploader" ng-click="resolveUploadURL()"/><br>
+                                            <ul>
+                                                <li ng-repeat="item in uploader.queue">
+                                                    Name: <span ng-bind="item.file.name"></span><br>
+                                                    <button cass="btn btn-default"  ng-click="item.upload()">upload</button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <!-- Photo upload end -->
+
+                                    <!-- Video upload begin -->
+
+
+                                    <div class="panel-heading">
+                                        <h4 class="panel-title">
+                                            <a data-toggle="collapse" data-target="#videoCollapse" href="#videoCollapse" class = "collapsed">Add video</a>
+                                        </h4>
+                                    </div>
+
+                                    <div id="videoCollapse" class="panel-collapse collapse">
+                                        <div class="panel-body">
+                                            <label for="url">URL:</label>
+                                            <input id = "url" class = "form-control" type="text" ng-model="youtubeUrl"/>
+                                            <br>
+                                            <button class = "btn btn-default" ng-click="uploadVideo()">Upload video</button> 
+
+                                            <ul>
+                                                <li ng-repeat="video in videos">
+                                                    {{video.origin_url}} <a href="#" ng-click="deleteVideo($index)"><span class="glyphicon glyphicon-trash"></span></a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Video upload end -->
+                            <label >
+                                <input type="checkbox" ng-model = "fromGroup"/>
+                                From group?
+                            </label>
+                            <br>
+
+                            <a class="btn btn-default" href="#" ng-click = "post()">Post</a>
+                        </div>
+                        <!-- Posting section end -->
+
+                        <!-- Wall section begin -->
+                        <div ng-controller = "WallController">
+
+                            <div class="text-center"> 
+                                <a href="#" class = "btn btn-default" ng-click="getPosts()">Show posts</a>
+                            </div>
+                            <br>
+                            <ul class="list-group">
+                                <li class="list-group-item" ng-repeat = "post in posts">
+                                    <!-- Restore deleted post begin -->
+                                    <div ng-show="post.deleted">
+                                        The post have been deleted. <a href="#" ng-click="restorePost($index)">Restore?</a>
+                                    </div>
+                                    <!-- Restore deleted post end -->
+
+                                    <div  class="media" ng-show="!post.deleted"> 
+                                        <!-- Post data begin -->
+                                        <a class="pull-left" href="#">
+                                            <img class="media-object" ng-src="{{post.owner.photo}}">
+                                        </a>
+
+                                        <a class="pull-right" href="#" ng-click="beginEdit($index)" ng-show = "post.can_edit&&!post.editing"><span class="glyphicon glyphicon-pencil"></span></a>
+                                        <a class="pull-right" href="#" ng-click="deletePost($index)" ng-show = "post.can_delete"><span class="glyphicon glyphicon-trash"></span></a>
+
+                                        <div class="media-body">
+                                            <h4 class="media-heading">{{post.owner.first_name+post.owner.name}} {{post.owner.last_name}}
+                                                <small>{{post.date*1000 | date:"dd MMMM, yyyy 'at' HH:mm"}}</small>
+                                            </h4>
+                                            <div ng-bind="post.text">
+                                            </div>
+                                        </div>
+                                        <!-- Post data end -->
+
+                                        <!-- Post editing controls begin -->
+                                        <br>
+                                        <div class="" ng-show = "post.editing">
+                                            <textarea class="form-control" ng-model="post.text"></textarea>
+                                            <a class="btn btn-default"  href="#" ng-click="editPost(post.text, $index)">Confirm</a>
+                                            <a class="btn btn-default" href="#" ng-click="cancelEdit($index)">Cancel</a>
+                                        </div>
+                                        <!-- Post editing controls end -->
+
+                                        <!-- Post controls begin -->                                    
+                                        <a href="#" ng-click="getComments($index)">Show Comments</a>
+                                        <a href="#" ng-click="hideComments($index)">Hide Comments</a>
+                                        <!-- Post controls end -->
+                                        <br>
+                                        <!-- Comments section begin-->
+                                        <div ng-show = "post.commentsShow">
+                                            <ul class="list-group">
+                                                <li class="list-group-item" ng-repeat="comment in post.comments">
+                                                    <!-- Comment data section begin -->
+                                                    <div class="media"  ng-show="!(comment.deleted||comment.editing)">
+
+                                                        <a class="pull-left">
+                                                            <img class="media-object" ng-src="{{comment.owner.photo_50}}">
+                                                        </a>
+                                                        <a class="pull-right" href="#" ng-click="beginEditComment($parent.$index,$index)" ng-show = "comment.can_edit"><span class="glyphicon glyphicon-pencil"></span></a>
+                                                        <a class="pull-right" href="#" ng-click="deleteComment(comment.id, $parent.$index ,$index); getComments($parent.$index)"><span class="glyphicon glyphicon-trash"></span></a>
+                                                        <a class="pull-right" href="#" ng-click="beginReply(comment.id, $parent.$index)" ng-show = "true"><span class="glyphicon glyphicon-share-alt"></span></a>
+
+                                                        <div class="media-body">                                                        
+                                                          <h4 class="media-heading">{{comment.owner.name}} {{comment.owner.first_name}} {{comment.owner.last_name}} <small>{{comment.date*1000 | date:"dd MMMM, yyyy 'at' HH:mm"}}</small> </h4>
+                                                          <div ng-bind="comment.text"> </div>
+                                                      </div>
+                                                      <!-- Comment data section end -->
+
+                                                      <!-- Comment edit section begin -->
+                                                      <div  ng-show = "comment.editing">
+                                                        <textarea ng-model="comment.text"></textarea>
+                                                        <a href="#" ng-click="editComment(comment.id, comment.text, $parent.$index, $index)" >Confirm</a>
+                                                        <a href="#" ng-click="cancelEditComment($parent.$index,$index)">Cancel</a>
+                                                    </div>
+                                                    <!-- Comment edit section end -->
+
+                                                    <!-- Comment control secton begin -->
+
+                                                    <!-- Comment control secton begin -->
+                                                </div>
+                                                <!-- Comment deleted message begin -->
+                                                <div ng-show="comment.deleted">
+                                                    Comment has been deleted. <a href="#" ng-click="restoreComment(comment.id, $parent.$index ,$index)">Restore?</a>
+                                                </div>
+                                                <!-- Comment deleted message end -->
+                                            </li>
+                                        </ul>
+                                        <div class="text-center">
+                                            <a class="btn btn-default" href="#" ng-click="getComments(post.id, $index)">Show more comments</a>
+                                        </div>
+                                        <br>
+
+                                        <!-- Add comment section begin -->
+                                        <div>
+                                            <textarea class="form-control" ng-model="commentText" id="commentText{{$index}}"></textarea>
+                                            <br>
+                                            <a class="btn btn-default" href="#" ng-click="addComment($index, commentFromGroup ? 1 : 0 , commentText, replyTo)" >Post</a>
+                                            <label>
+                                                <input type="checkbox" ng-model = "commentFromGroup"/>From group?
+                                            </label>
+                                        </div>
+                                        <!-- Add comment section end -->
+                                    </div>
+                                    <!-- Comments section end -->
+                                </div>
+
+                            </li>
+                        </ul>
+                    </div>
+                    <a href="#" class = "btn btn-default" ng-click="getPosts()">Show more posts</a>
+                    <!-- Wall section end -->
                 </div>
-                <a href="#" class = "btn btn-default" ng-click="getPosts()">Show more posts</a>
-                <!-- Wall section end -->
-            </div>
 
-            <div class="col-md-4">
-                <!-- Group Selection Well -->
-                <div class="well" ng-controller="PostingController">
-                    <h4>Select group</h4>
-                    <select class="form-control" ng-model="currentGroup.group" ng-options="group as group.name for group in groups">
-                    </select>
-                </div>
-            </div>
 
+
+
+            </div>
 
         </div>
 
-    </div>
+        <script type="text/javascript" src = "js/jquery-2.1.3.min.js"></script>
+        <script src="js/angular.min.js"></script>
+        <script src="js/angular-file-upload.js"></script>
+        <script type="text/javascript" src = "js/angular-cookies.js"></script>
+        <script type="text/javascript" src = "js/vk_api.js"></script>
+        <script src="js/Chart.js"></script>
+        <script src="js/legend.js"></script>
+        <script type="text/javascript" src = "js/app.js"></script>
+        <script type="text/javascript" src = "js/bootstrap.min.js"></script>
 
-    <script type="text/javascript" src = "js/jquery-2.1.3.min.js"></script>
-    <script src="js/angular.min.js"></script>
-    <script src="js/angular-file-upload.js"></script>
-    <script type="text/javascript" src = "js/angular-cookies.js"></script>
-    <script type="text/javascript" src = "js/vk_api.js"></script>
-    <script type="text/javascript" src = "js/app.js"></script>
-    <script type="text/javascript" src = "js/bootstrap.min.js"></script>
-
-</body>
-</html>
+    </body>
+    </html>

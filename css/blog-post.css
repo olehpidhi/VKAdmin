@@ -21,3 +21,8 @@ footer {
 .panel-heading a.collapsed:after {
     content:"\e080";
 }
+
+.chart {
+    width: 500px;
+    height: 500px;
+}
